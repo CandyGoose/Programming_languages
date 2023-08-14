@@ -1,0 +1,80 @@
+name: CI
+
+on: [push]
+
+jobs:
+  testlab1:
+    runs-on: ubuntu-latest 
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Install nasm
+      run: |
+        sudo apt-get update
+        sudo apt-get install nasm -y
+
+    - name: Install xmlrunner
+      run: |
+        pip install xmlrunner
+
+    - name: Run tests
+      run: |
+        chmod +x labs/lab1/test.py
+        python labs/lab1/test.py
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results
+        path: labs/lab1/report.xml
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+
+      - name: Run Linter
+        run: |
+          cd labs/lab3/solution
+          echo "Running linter"
+          chmod +x run-checks.sh
+          cat run-checks.sh
+          ./run-checks.sh
+
+  testlab3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+
+      - name: Set up Ninja and Clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build clang
+
+      - name: Build and Test
+        run: |
+          cd labs/lab3
+          mkdir build
+          cd build 
+          cmake -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=clang ..
+          cmake --build . --config ASan --target check
+          cmake --build . --config LSan --target check
+          cmake --build . --config MSan --target check
+          cmake --build . --config UBSan --target check
+        
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-reports
+          path: ./labs/lab3/build/report.xml
