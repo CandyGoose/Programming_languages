@@ -10,24 +10,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
+    - name: Set up Python 2
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python2 python2-dev
+      shell: bash
 
     - name: Install nasm
       run: |
         sudo apt-get update
         sudo apt-get install nasm -y
 
-    - name: Install xmlrunner
-      run: |
-        pip install xmlrunner
-
     - name: Run tests
       run: |
-        chmod +x labs/lab1/test.py
-        python labs/lab1/test.py
+        python2 labs/lab1/test.py
 
     - name: Upload test results
       uses: actions/upload-artifact@v2
