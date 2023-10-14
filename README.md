@@ -1,8 +1,6 @@
 # Языки программирования
 ## Программная инженерия
 ### Лабораторные
-[1 - I/O library](https://github.com/VeraKasianenko/Programming_languages/tree/main/labs/lab1)
-
 [3 - Поворот картинки](https://github.com/VeraKasianenko/Programming_languages/tree/main/labs/lab3)
 
 [4 - Аллокатор памяти](https://github.com/VeraKasianenko/Programming_languages/tree/main/labs/lab4)

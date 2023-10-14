@@ -7,105 +7,105 @@ exit:
 
 ; Принимает указатель на нуль-терминированную строку, возвращает её длину
 string_length:
-    xor rax, rax         ; Очистка rax (счетчик длины)
-    .count:
-        cmp byte [rdi + rax], 0   ; Проверка текущего байта на нуль
-        je .return       ; Если это так, вернуться
-        inc rax          ; Перейти к следующему байту
-        jmp .count       ; Повторить цикл
-    .return:
-		ret
+    xor rax, rax
+.count:
+    cmp byte [rdi + rax], 0
+    je .return
+    inc rax
+    jmp .count
+.return:
+    ret
 
 ; Принимает указатель на нуль-терминированную строку, выводит её в stdout
 print_string:
-    push rdi                ; Сохранение значения rdi
-    call string_length      ; Получение длины строки
-    pop rdi                 ; Восстановление rdi
-    mov rdx, rax            ; Установить rdx на длину строки
-    mov rsi, rdi            ; Установить rsi для указания на начало строки
-    mov rdi, 1              ; файловый дескриптор (stdout)
-    mov rax, 1              ; номер системного вызова для записи
-    syscall                 ; выполнение системного вызова
+    push rdi
+    call string_length
+    pop rdi
+    mov rdx, rax
+    mov rsi, rdi
+    mov rdi, 1
+    mov rax, 1
+    syscall
     ret
 
 ; Принимает код символа и выводит его в stdout
 print_char:
-    push rdi             ; Сохранение значения rdi
-    mov rsi, rsp         ; Установка rsi для указания на символ в стеке
-    mov rax, 1           ; номер системного вызова для записи
-    mov rdx, 1           ; длина данных для записи (1 байт)
-    mov rdi, 1           ; файловый дескриптор (stdout)
-    syscall              ; выполнение системного вызова
-    pop rdi              ; Восстановление rdi
+    push rdi
+    mov rsi, rsp
+    mov rax, 1
+    mov rdx, 1
+    mov rdi, 1
+    syscall
+    pop rdi
     ret
 
 ; Переводит строку (выводит символ с кодом 0xA)
 print_newline:
-    mov rdi, 0xA         ; ASCII-код символа новой строки
-    jmp print_char       ; Переход к print_char для вывода символа новой строки
+    mov rdi, 0xA       
+    jmp print_char  
 
 ; Выводит беззнаковое 8-байтовое число в десятичном формате 
 ; Совет: выделите место в стеке и храните там результаты деления
 ; Не забудьте перевести цифры в их ASCII коды.
 print_uint:
-    mov r11, rsp         ; Сохранение r11
-    mov rax, rdi         ; Помещение числа в rax
-    xor rdx, rdx         ; Очистка rdx (используется для остатка от деления)
-    dec rsp              ; Изменение указателя стека
-    mov rcx, 10          ; Делитель
-    .loop:
-        div rcx          ; Деление rax на 10, частное в rax, остаток в rdx
-        add dl, '0'      ; Преобразование остатка в символ ASCII
-        dec rsp          ; Изменение указателя стека
-        mov byte [rsp], dl ; Сохранение ASCII-цифры в стеке
-        xor rdx, rdx     ; Очистка rdx перед следующей итерацией
-        cmp rax, 0       ; Проверка на ненулевое частное
-        jnz .loop        ; Если не ноль, повторить цикл
-    mov rdi, rsp         ; Установка rdi для указания на начало числа
-    push r11             ; Восстановление r11
-    call print_string    ; Вызов print_string для вывода числа
-    pop rsp              ; Изменение указателя стека
+    mov r11, rsp
+    mov rax, rdi
+    xor rdx, rdx
+    dec rsp
+    mov rcx, 10
+.loop:
+    div rcx
+    add dl, '0'
+    dec rsp
+    mov byte [rsp], dl
+    xor rdx, rdx
+    cmp rax, 0
+    jnz .loop
+    mov rdi, rsp
+    push r11
+    call print_string
+    pop rsp
     ret
 
 ; Выводит знаковое 8-байтовое число в десятичном формате 
 print_int:
-    cmp rdi, 0           ; Сравнение значения с нулем
-    jge .positive        ; Если больше или равно нулю, переход к .positive
-    neg rdi              ; Инвертирование значения
-    push rdi             ; Сохранение инвертированного значения
-    mov rdi, '-'         ; Установка rdi для хранения знака минус
-    call print_char      ; Вывод символа минуса
-    pop rdi              ; Восстановление исходного значения
-    .positive:
-		jmp print_uint   ; Переход к print_uint для вывода (положительного) числа
+    cmp rdi, 0
+    jge .positive
+    neg rdi
+    push rdi
+    mov rdi, '-'
+    call print_char
+    pop rdi
+.positive:
+    jmp print_uint
 
 ; Принимает два указателя на нуль-терминированные строки, возвращает 1 если они равны, 0 иначе
 string_equals:
-    .loop:
-        mov r11b, byte [rsi]       ; Загрузка текущего байта из второй строки
-        cmp byte [rdi], r11b       ; Сравнение его с текущим байтом первой строки
-        jne .neq                   ; Если не равны, переход к .neq
-        test r11b, r11b            ; Проверка на нулевой байт (конец строки)
-        jz .eq                     ; Если нуль, переход к .eq (строки равны)
-        inc rsi                    ; Переход к следующему байту второй строки
-        inc rdi                    ; Переход к следующему байту первой строки
-        jmp .loop                  ; Повтор цикла
-    .neq:
-        mov rax, 0                 ; Установка rax в 0 (не равны)
-        ret
-    .eq:
-        mov rax, 1                 ; Установка rax в 1 (равны)
-        ret
+.loop:
+    mov r11b, byte [rsi]
+    cmp byte [rdi], r11b
+    jne .neq
+    test r11b, r11b
+    jz .eq
+    inc rsi
+    inc rdi
+    jmp .loop
+.neq:
+    mov rax, 0
+    ret
+.eq:
+    mov rax, 1
+    ret
 
 ; Читает один символ из stdin и возвращает его. Возвращает 0 если достигнут конец потока
 read_char:
-    mov rax, 0             ; номер системного вызова для чтения
-    mov rdi, 0             ; файловый дескриптор (stdin)
-    push 0                 ; Резервирование места в стеке для символа
-    mov rsi, rsp           ; Установка rsi для указания на зарезервированное место
-    mov rdx, 1             ; Количество байт для чтения
-    syscall                ; выполнение системного вызова
-    pop rax                ; Извлечение прочитанного символа из стека
+    mov rax, 0
+    mov rdi, 0
+    push 0
+    mov rsi, rsp
+    mov rdx, 1
+    syscall
+    pop rax
     ret
 
 ; Принимает: адрес начала буфера, размер буфера
@@ -116,39 +116,39 @@ read_char:
 ; При неудаче возвращает 0 в rax
 ; Эта функция должна дописывать к слову нуль-терминатор
 read_word:
-    xor rcx, rcx             ; Очистка rcx (счетчик длины слова)
-    .loop:
-        cmp rcx, rsi         ; Сравнение длины слова с зарезервированным местом
-        jge .fail            ; Если больше или равно, переход к .fail
-        push rdi             ; Сохранение rdi
-        push rsi             ; Сохранение rsi
-        push rcx             ; Сохранение rcx
-        call read_char       ; Вызов read_char для чтения символа
-        pop rcx              ; Восстановление rcx
-        pop rsi              ; Восстановление rsi
-        pop rdi              ; Восстановление rdi
-        cmp al, 0x20         ; Сравнение прочитанного символа с пробелом
-        je .skip_space       ; Если равно, переход к .skip_space
-        cmp al, 0x9          ; Сравнение прочитанного символа с символом табуляции
-        je .skip_space       ; Если равно, переход к .skip_space
-        cmp al, 0xA          ; Сравнение прочитанного символа с символом новой строки
-        je .skip_space       ; Если равно, переход к .skip_space
-        mov [rdi + rcx], al  ; Сохранение символа в зарезервированном месте
-        cmp al, 0            ; Сравнение символа с нулем
-        je .fine             ; Если равно, переход к .fine
-        inc rcx              ; Увеличение длины слова
-        jmp .loop            ; Повтор цикла
-    .fine:
-        mov rax, rdi         ; Установка rax для указания на начало слова
-        mov rdx, rcx         ; Установка rdx для длины слова
-        ret
-    .fail:
-        xor rax, rax         ; Очистка rax (возврат 0 для указания на неудачу)
-        ret
-    .skip_space:
-        test rcx, rcx        ; Проверка наличия прочитанных символов
-        jz .loop             ; Если нет, повтор цикла
-        jmp .fine
+    xor rcx, rcx
+.loop:
+    cmp rcx, rsi
+    jge .fail
+    push rdi
+    push rsi
+    push rcx
+    call read_char
+    pop rcx
+    pop rsi
+    pop rdi
+    cmp al, 0x20
+    je .skip_space
+    cmp al, 0x9
+    je .skip_space
+    cmp al, 0xA
+    je .skip_space
+    mov [rdi + rcx], al
+    cmp al, 0
+    je .fine
+    inc rcx
+    jmp .loop
+.fine:
+    mov rax, rdi     
+    mov rdx, rcx      
+    ret
+.fail:
+    xor rax, rax      
+    ret
+.skip_space:
+    test rcx, rcx       
+    jz .loop           
+    jmp .fine
 
 ; Принимает указатель на строку, пытается
 ; прочитать из её начала беззнаковое число.
@@ -156,25 +156,25 @@ read_word:
 ; rdx = 0 если число прочитать не удалось
 parse_uint:
     push rbx
-    xor rdx, rdx             ; Очистка rdx (используется для умножения и деления)
-    xor rax, rax             ; Очистка rax (результат)
-    xor rbx, rbx             ; Очистка rbx (множитель)
-    .loop:
-        mov bl, byte [rdi + rdx]  ; Загрузка текущего символа-цифры
-        sub bl, '0'               ; Преобразование ASCII-цифры в число
-        jl .return                ; Если не является допустимой цифрой, вернуться
-        cmp bl, 9
-        jg .return                ; Если не является допустимой цифрой, вернуться
-        push rdx                  ; Сохранение rdx
-        mov rdx, 10               ; Установка rdx для умножения
-        mul rdx                   ; rax *= 10
-        pop rdx                   ; Восстановление rdx
-        add rax, rbx              ; rax += rbx (накопление)
-        inc rdx                   ; Переход к следующему символу
-        jmp .loop                 ; Повтор цикла
-    .return:
-        pop rbx                   ; Восстановление rbx
-        ret
+    xor rdx, rdx        
+    xor rax, rax        
+    xor rbx, rbx        
+.loop:
+    mov bl, byte [rdi + rdx]
+    sub bl, '0'         
+    jl .return         
+    cmp bl, 9
+    jg .return            
+    push rdx           
+    mov rdx, 10          
+    mul rdx             
+    pop rdx           
+    add rax, rbx          
+    inc rdx             
+    jmp .loop           
+.return:
+    pop rbx           
+    ret
 
 ; Принимает указатель на строку, пытается
 ; прочитать из её начала знаковое число.
@@ -182,36 +182,36 @@ parse_uint:
 ; Возвращает в rax: число, rdx : его длину в символах (включая знак, если он был) 
 ; rdx = 0 если число прочитать не удалось
 parse_int:
-    cmp byte [rdi], '-'        ; Проверка, является ли первый символ знаком минуса
-    je .negative               ; Если да, переход к .negative
-    jmp parse_uint             ; В противном случае, преобразование беззнакового числа
-	.negative:
-		inc rdi                ; Переход за символ минуса
-		call parse_uint        ; Преобразование беззнакового числа
-		cmp rdx, 0             ; Проверка, было ли число преобразовано
-		je .fail               ; Если нет
-		inc rdx                ; Установка флага отрицательности
-		neg rax                ; Инвертирование преобразованного значения
-		ret
-	.fail:
-		mov rax, 0             ; Возврат 0 (неудача)
-		ret
+    cmp byte [rdi], '-'     
+    je .negative          
+    jmp parse_uint        
+.negative:
+    inc rdi         
+    call parse_uint 
+    cmp rdx, 0     
+    je .fail      
+    inc rdx        
+    neg rax        
+    ret
+.fail:
+    mov rax, 0        
+    ret
 
 ; Принимает указатель на строку, указатель на буфер и длину буфера
 ; Копирует строку в буфер
 ; Возвращает длину строки если она умещается в буфер, иначе 0
 string_copy:
-    xor rax, rax                ; Очистка rax (счетчик)
-    .loop:
-        cmp rax, rdx            ; Сравнение счетчика с длиной строки
-        jge .fail               ; Если больше или равно, переход к .fail
-        mov r11b, byte [rdi + rax] ; Загрузка текущего байта из исходной строки
-        mov byte [rsi + rax], r11b ; Сохранение байта в целевой строке
-        test r11b, r11b         ; Проверка на нулевой байт
-        jz .success             ; Если ноль, переход к .success
-        inc rax                 ; Переход к следующему байту
-        jmp .loop               ; Повтор цикла
-    .fail:
-        xor rax, rax            ; Очистка rax (возврат 0 для указания на ошибку)
-    .success:
+    xor rax, rax   
+.loop:
+    cmp rax, rdx    
+    jge .fail       
+    mov r11b, byte [rdi + rax] 
+    mov byte [rsi + rax], r11b
+    test r11b, r11b     
+    jz .success  
+    inc rax   
+    jmp .loop     
+.fail:
+    xor rax, rax 
+.success:
     ret
