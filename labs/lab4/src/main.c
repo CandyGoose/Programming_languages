@@ -2,9 +2,9 @@
 
 int main() {
     if (run_tests()) {
-        printf("ALL TESTS PASSED");
+        printf("ALL TESTS PASSED\n");
         return 0;
     }
-    printf("FAILED");
+    printf("FAILED\n");
     return 1;
 }

@@ -104,7 +104,7 @@ static bool mergeable(struct block_header const* restrict fst, struct block_head
 }
 
 static bool try_merge_with_next( struct block_header* block ) {
-    if (block == NULL || block->next == NULL) {
+    if (block == NULL || block->next == NULL || !mergeable(block, block->next)) {
         return false;
     }
 
@@ -150,27 +150,15 @@ static struct block_search_result find_good_or_last  ( struct block_header* rest
 
 /*  Попробовать выделить память в куче начиная с блока `block` не пытаясь расширить кучу
  Можно переиспользовать как только кучу расширили. */
-static struct block_search_result try_memalloc_existing ( size_t query, struct block_header* block ) {
-    struct block_header* current = block;
-    struct block_header* last = NULL;
-
-    while (current != NULL) {
-        if (block_is_big_enough(query, current) && current->is_free) {
-            if (split_if_too_big(current, query)) {
-                return (struct block_search_result){BSR_FOUND_GOOD_BLOCK, current};
-            }
-            return (struct block_search_result){BSR_FOUND_GOOD_BLOCK, current};
+static struct block_search_result try_memalloc_existing(size_t query, struct block_header* block) {
+    struct block_search_result result = find_good_or_last(block, query);
+    if (result.type == BSR_FOUND_GOOD_BLOCK) {
+        if (split_if_too_big(result.block, query)) {
+            return result;
         }
-
-        last = current;
-        current = current->next;
+        return result;
     }
-
-    if (last != NULL) {
-        return (struct block_search_result){BSR_REACHED_END_NOT_FOUND, last};
-    }
-
-    return (struct block_search_result){BSR_CORRUPTED, NULL};
+    return result;
 }
 
 
