@@ -4,6 +4,12 @@
 #include "image.h"
 #include <stdio.h>
 
+#define BMP_SIGNATURE 0x4D42
+#define BMP_HEADER_SIZE 40
+#define BITS_PER_PIXEL 24
+
+#define CALCULATE_PADDING(row_size) ((4 - ((row_size) % 4)) % 4)
+
 enum read_status {
     READ_OK = 0,
     READ_INVALID_SIGNATURE,
