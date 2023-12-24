@@ -24,7 +24,7 @@ enum write_status to_bmp(FILE* out, const struct image* img) {
     header.bfType = BMP_SIGNATURE;
 
     // Рассчитываем размер строки с учетом padding
-    uint32_t row_size = img->width * sizeof(struct pixel);
+    uint32_t row_size = ROW_SIZE(img);
     uint32_t padding = CALCULATE_PADDING(row_size);
     header.bfileSize = sizeof(struct bmp_header) + (row_size + padding) * img->height;
 
@@ -82,7 +82,7 @@ enum read_status from_bmp(FILE* in, struct image** img) {
     }
 
     // Рассчитываем размер строки с учетом padding
-    uint32_t row_size = (*img)->width * sizeof(struct pixel);
+    uint32_t row_size = ROW_SIZE(*img);
     uint32_t padding = CALCULATE_PADDING(row_size);
 
     // Чтение пикселей с учетом padding
