@@ -21,20 +21,20 @@ struct __attribute__((packed)) bmp_header {
 enum write_status to_bmp(FILE* out, const struct image* img) {
     // Подготовка BMP заголовка
     struct bmp_header header;
-    header.bfType = 0x4D42;
+    header.bfType = BMP_SIGNATURE;
 
     // Рассчитываем размер строки с учетом padding
-    uint32_t row_size = img->width * sizeof(struct pixel);
-    uint32_t padding = (4 - (row_size % 4)) % 4; // Вычисляем необходимый padding
+    uint32_t row_size = ROW_SIZE(img);
+    uint32_t padding = CALCULATE_PADDING(row_size);
     header.bfileSize = sizeof(struct bmp_header) + (row_size + padding) * img->height;
 
     header.bfReserved = 0;
     header.bOffBits = sizeof(struct bmp_header);
-    header.biSize = 40;
+    header.biSize = BMP_HEADER_SIZE;
     header.biWidth = img->width;
     header.biHeight = img->height;
     header.biPlanes = 1;
-    header.biBitCount = 24;
+    header.biBitCount = BITS_PER_PIXEL;
     header.biCompression = 0;
     header.biSizeImage = 0;
     header.biXPelsPerMeter = 0;
@@ -71,7 +71,7 @@ enum read_status from_bmp(FILE* in, struct image** img) {
         return READ_INVALID_HEADER;
     }
     // Проверка сигнатуры BMP
-    if (header.bfType != 0x4D42) {
+    if (header.bfType != BMP_SIGNATURE) {
         return READ_INVALID_SIGNATURE;
     }
 
@@ -82,8 +82,8 @@ enum read_status from_bmp(FILE* in, struct image** img) {
     }
 
     // Рассчитываем размер строки с учетом padding
-    uint32_t row_size = (*img)->width * sizeof(struct pixel);
-    uint32_t padding = (4 - (row_size % 4)) % 4; // Вычисляем необходимый padding
+    uint32_t row_size = ROW_SIZE(*img);
+    uint32_t padding = CALCULATE_PADDING(row_size);
 
     // Чтение пикселей с учетом padding
     for (uint32_t y = 0; y < header.biHeight; ++y) {
