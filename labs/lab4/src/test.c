@@ -1,6 +1,4 @@
-#define _DEFAULT_SOURCE
 #include "test.h"
-#include <unistd.h>
 #include <assert.h>
 
 #define QUERY_SIZE 100
@@ -24,7 +22,7 @@ static bool validate_allocated_memory(void* ptr) {
 static bool successful_memory_allocation() {
     printf("Test for successful memory allocation started...\n");
     heap = heap_init(QUERY_SIZE);
-    if (heap == NULL) {
+    if (!heap) {
         printf("Error: memory allocation failed.\n");
         return false;
     }
