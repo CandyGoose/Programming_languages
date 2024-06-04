@@ -10,7 +10,7 @@
 
 * Прочитайте первые две главы "Low-level programming: C, assembly and program execution".
 
-* Ознакомьтесь с [документацией на следующие инструкции](https://github.com/VeraKasianenko/Programming_languages/tree/main/labs/lab1/intel-manual.pdf).
+* Ознакомьтесь с [документацией на следующие инструкции](https://github.com/CandyGoose/Programming_languages/tree/main/labs/lab1/intel-manual.pdf).
 
   - `xor`
   - `jmp`, `ja` и другими командами условного перехода
